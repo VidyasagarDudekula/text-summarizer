@@ -1,0 +1,4 @@
+data:
+  model: 'Yale-LILY/brio-cnndm-uncased'
+  min: 0.25
+  max: 0.65

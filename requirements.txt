@@ -1,0 +1,8 @@
+nltk==3.8.1
+PyYAML==6.0
+PyYAML==6.0
+spacy==3.5.4
+transformers==4.27.4
+torch==2.0.1
+torchaudio==2.0.2
+torchvision==0.15.2
