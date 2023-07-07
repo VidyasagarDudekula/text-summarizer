@@ -16,6 +16,8 @@ config_data = config['data']
 
 class Summarizer:
     def __init__(self):
+        self.model = ""
+        self.tokenizer = ""
         self.pipe = self.load(config_data['model'])
         self._text = ""
         self.x = 0.25
@@ -25,6 +27,8 @@ class Summarizer:
     def load(self, model_name):
         model = BartForConditionalGeneration.from_pretrained(model_name)
         tokenizer = BartTokenizer.from_pretrained(model_name)
+        self.model = model
+        self.tokenizer = tokenizer
         return pipeline("summarization", model=model, tokenizer=tokenizer, device=-1)
 
     def getMinMax(self, text):
@@ -34,20 +38,12 @@ class Summarizer:
     def invoke_model(self, text):
         self.x, self.y = self.getMinMax(text)
         try:
-            data = self.pipe(
-                "Summarize:- \n\n"+text,
-                min_length=self.x,
-                truncation=True,
-                no_repeat_ngram_size=3,
-                max_length=self.y,
-                temperature=0,
-                top_k=0,
-            )
-            if not data or 'summary_text' not in data[0].keys():
+            inputs = self.tokenizer([text.lower()], max_length=self.y, return_tensors="pt", truncation=True)
+            summary_ids = self.model.generate(inputs["input_ids"])
+            data = self.tokenizer.batch_decode(summary_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
+            self.summary = data
+            if self.summary is None:
                 self.summary = ""
-            else:
-                self.summary = data[0]['summary_text'].replace('\n', ' ')
-                self.summary = self.summary.replace('  ', ' ')
         except Exception as ex:
             print(ex)
             self.summary = ""
@@ -81,8 +77,9 @@ Despite its promise and potential, machine learning also presents certain challe
 
 Nonetheless, the possibilities for machine learning are vast. From self-driving cars to predictive healthcare, from personalized education to smart homes, machine learning is progressively redefining the boundaries of what technology can accomplish. As we continue to refine these techniques, we move closer to a world where machines can learn, adapt, and make decisions with human-like intelligence. The journey of machine learning, from a theoretical concept to a transformative technology, underscores our remarkable progress in the ongoing quest to unravel the complexities of artificial intelligence.
     """
-    print("Summary is:- \n")
     start_time = time.time()
-    print(summ.generate_summary(text))
+    summary = summ.generate_summary(text)
+    print("Summary is:- \n")
+    print(summary)
     end_time = time.time()
     print(f"Time to generate the summary:- {round(end_time - start_time,2)}secs")

@@ -10,6 +10,9 @@ stopWords = set(stopwords.words('english'))
 
 def clean(text):
     text = re.sub(r"\n|\t|\r", " ", text)
+    text = text.encode('utf-8')
+    text = text.decode('utf-8')
+    print(text, "\n\n")
     text = re.sub('"', '', text)
     text = re.sub("'", "", text)
     text = re.sub(r"\s+", " ", text)
@@ -98,7 +101,7 @@ def capitalize_proper_nouns(text):
     for token in doc:
         if token.pos_ == 'PROPN' or token.ent_type_ != "":
             text = token.text
-            temp = re.sub(r"\W|\s",'',text).strip()
+            temp = re.sub(r"\W|\s", '', text).strip()
             if is_roman_number(text) or (len(temp) < 3 and len(temp) > 0 and text[0].isalpha() and text.lower() not in stopWords):
                 text = text.upper()
             else:
@@ -111,10 +114,19 @@ def capitalize_proper_nouns(text):
     return capitalized_text
 
 
+def is_valid_sentence(sent):
+    words = sent.split()
+    filtered__sent= " ".join([word for word in words if word.lower() not in stopWords])
+    sent  = re.sub(r"\s+", "", filtered__sent)
+    return len(sent) > 7
+
+
 def afterClean(text, original_text):
     # brio can some times give some encoding issues. so you can clean them.
     text = text.replace("\n", ' ')
     text = text.replace("\t", ' ')
+    text = text.encode('utf-8')
+    text = text.decode('utf-8')
     while len(text) > 0 and (text[0] in ['.', ' ', ';', ':', '.', '-', ')', '^', '~', '=', '/', '>', '?', '|']):
         text = text[1:]
     text = re.sub(r"\s+", " ", text)
@@ -122,6 +134,12 @@ def afterClean(text, original_text):
     text = capitalize_proper_nouns(text)
     while len(text) > 0 and (text[0] in ['.', ' ', ';', ':', '.', '-', ')', '^', '~', '=', '/', '>', '?', '|']):
         text = text[1:]
+    sentences = sentenceTokenizer(text)
+    valid_sentence = []
+    for sent in sentences:
+        if is_valid_sentence(sent):
+            valid_sentence.append(sent)
+    text = " ".join(valid_sentence) 
     return text.strip()
 
 
