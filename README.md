@@ -61,7 +61,7 @@ Nonetheless, the possibilities for machine learning are vast. From self-driving 
 
 Summary is:- 
 
-Machine learning is a subfield of artificial intelligence that allows computers to learn from and make decisions based on data. The rise of machine learning is redefining the boundaries of what technology can do. Machine learning can help computers learn and make human-like decisions with human intelligence. The discipline is a blend of statistics, computer science, and data analysis. The possibilities for machine learning include self-driving cars, predictive healthcare, and smart homes. The rise of Machine learning is the result of advances in computer science and artificial intelligence. And the rise in the field of computer science is called machine learning.  And the growth of the field is expected to accelerate in The Coming Years.
+Machine learning is a subfield of artificial intelligence that allows computers to learn from and make decisions based on data. The discipline is a blend of statistics, computer science, and data analysis. Machine learning algorithms are designed to learn and improve over time by learning from data. Unsupervised learning aims to find patterns and relationships in data.
 
 Time to generate the summary:- 16.07secs
 

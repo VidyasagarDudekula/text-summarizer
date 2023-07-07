@@ -2,7 +2,8 @@ import nltk
 import yaml
 import os
 import time
-from transformers import pipeline, BartForConditionalGeneration, BartTokenizer
+import torch
+from transformers import BartForConditionalGeneration, BartTokenizer
 from utils import sentenceTokenizer, clean, afterClean
 current_file_path = os.path.dirname(os.path.realpath(__file__))
 config = {}
@@ -18,18 +19,18 @@ class Summarizer:
     def __init__(self):
         self.model = ""
         self.tokenizer = ""
-        self.pipe = self.load(config_data['model'])
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.load(config_data['model'])
         self._text = ""
         self.x = 0.25
         self.y = 0.65
         self.summary = ""
 
     def load(self, model_name):
-        model = BartForConditionalGeneration.from_pretrained(model_name)
+        model = BartForConditionalGeneration.from_pretrained(model_name).to(self.device)
         tokenizer = BartTokenizer.from_pretrained(model_name)
         self.model = model
         self.tokenizer = tokenizer
-        return pipeline("summarization", model=model, tokenizer=tokenizer, device=-1)
 
     def getMinMax(self, text):
         tokens_count = len(nltk.word_tokenize(text))
