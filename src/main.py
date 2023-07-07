@@ -3,7 +3,7 @@ import yaml
 import os
 import time
 import torch
-from transformers import BartForConditionalGeneration, BartTokenizer
+from transformers import BartForConditionalGeneration, BartTokenizer, AutoTokenizer
 from utils import sentenceTokenizer, clean, afterClean
 current_file_path = os.path.dirname(os.path.realpath(__file__))
 config = {}
@@ -20,11 +20,15 @@ class Summarizer:
         self.model = ""
         self.tokenizer = ""
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.token_counter = AutoTokenizer.from_pretrained("bert-base-uncased")
         self.load(config_data['model'])
         self._text = ""
         self.x = 0.25
         self.y = 0.65
         self.summary = ""
+    
+    def get_token_count(self, text):
+        return len(self.token_counter.tokenize(text))
 
     def load(self, model_name):
         model = BartForConditionalGeneration.from_pretrained(model_name).to(self.device)
@@ -37,6 +41,7 @@ class Summarizer:
         return int(tokens_count*config_data['min']), int(tokens_count*config_data['max'])
 
     def invoke_model(self, text):
+        text = text.strip()
         self.x, self.y = self.getMinMax(text)
         try:
             inputs = self.tokenizer([text.lower()], max_length=self.y, return_tensors="pt", truncation=True)
@@ -49,13 +54,35 @@ class Summarizer:
             print(ex)
             self.summary = ""
 
+    def get_segments(self, text):
+        if self.get_token_count(text) <= 500:
+            return [text]
+        sentences = sentenceTokenizer(text)
+        if len(sentences) <= 1:
+            return sentences
+        segments = []
+        segment = []
+        counter = 0
+        curr = 0
+        for sent in sentences:
+            curr = self.get_token_count(sent)
+            if curr + counter > 280:
+                segments.append(" ".join(segment))
+                segment = [sent]
+                counter = curr
+            else:
+                segment.append(sent)
+                counter += curr
+        if segment != []:
+            segments.append(" ".join(segment))
+        return segments
+
     def generate_summary(self, text):
         text = clean(text)
-        self.invoke_model(text)
-        sentences = sentenceTokenizer(self.summary)
-        for sent in range(len(sentences)):
-            sentences[sent] = afterClean(sentences[sent], text)
-        final_summary = " ".join(sentences)
+        segments = self.get_segments(text)
+        for segment in segments:
+            self.invoke_model(self.summary + " " + segment)
+        final_summary = afterClean(self.summary, text)
         return final_summary
 
 
